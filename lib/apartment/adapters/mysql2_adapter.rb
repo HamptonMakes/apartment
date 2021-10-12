@@ -37,6 +37,7 @@ module Apartment
       #   Reset current tenant to the default_tenant
       #
       def reset
+        @current = nil
         Apartment.connection.execute "use `#{default_tenant}`"
       end
 
@@ -47,7 +48,8 @@ module Apartment
       def connect_to_new(tenant)
         return reset if tenant.nil?
 
-        Apartment.connection.execute "use `#{environmentify(tenant)}`"
+        @current = environmentify(tenant)
+        Apartment.connection.execute "use `#{@current}`"
 
       rescue ActiveRecord::StatementInvalid => exception
         Apartment::Tenant.reset

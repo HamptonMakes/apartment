@@ -35,7 +35,7 @@ module Apartment
       #   Note alias_method here doesn't work with inheritence apparently ??
       #
       def current
-        Apartment.connection.current_database
+        @current || @default_tenant
       end
 
       #   Return the original public tenant
@@ -109,6 +109,7 @@ module Apartment
       #   Reset the tenant connection to the default
       #
       def reset
+        @current = default_tenant
         Apartment.establish_connection @config
       end
 
@@ -173,8 +174,10 @@ module Apartment
       def connect_to_new(tenant)
         query_cache_enabled = ActiveRecord::Base.connection.query_cache_enabled
 
-        Apartment.establish_connection multi_tenantify(tenant)
-        Apartment.connection.active?   # call active? to manually check if this connection is valid
+        config = multi_tenantify(tenant)
+        @current = config['database']
+        Apartment.establish_connection config
+        Apartment.connection.active? # call active? to manually check if this connection is valid
 
         Apartment.connection.enable_query_cache! if query_cache_enabled
       rescue *rescuable_exceptions => exception

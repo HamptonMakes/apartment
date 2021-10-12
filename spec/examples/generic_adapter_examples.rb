@@ -133,6 +133,12 @@ shared_examples_for "a generic apartment adapter" do
       subject.switch!(db1)
       expect(subject.current).to eq(db1)
     end
+
+    it "should cache the results" do
+      expect(subject.current).to eq(default_tenant)
+      subject.switch!(db1)
+      expect(subject.current).to eq(db1)
+    end
   end
 
   describe "#each" do
